@@ -21,20 +21,27 @@ and your reason before you write the fix.
 ## Part 1: Conceptual Check (15 min)
 
 **Question 1:** How do you select the rows of a DataFrame where **any** value in the row exceeds a
-given threshold?
+given threshold? **Answer** df[df.max(axis=1) > threshold]
 
 **Question 2:** How do you sort a DataFrame by column `A` ascending and column `B` descending at the
-same time?
+same time? **Answer** df.sort_values(["A", "B"], ascending=[True, False])
 
 **Question 3:** A takings column contains four `-999` sentinel codes and three genuinely missing
 values. You run `df["takings"].fillna(df["takings"].median())` and then remove the -999s. What is
-wrong with the result, and what is the correct order?
+wrong with the result, and what is the correct order? **Answer** Removing the -999s afterwards doesn’t fix those three filled values, because the damage is already done. Nothing errors, so the mistake is invisible. Correct Order: mask → compute → fill
 
 **Question 4:** What is the difference between *removing* an outlier and *capping* it? When would you
-choose each?
+choose each? **Answer** Removing an outlier throws away the whole row. Capping keeps the row but pulls the extreme value back to a limit. 
+- Remove when the value is clearly an error and the rest of the row can’t be trusted either. Examples: a test transaction, or a duplicate row.
+- Cap when the value is real but disruptive. A genuinely huge shift, say a public holiday, is a true number, but it would dominate an average. Capping keeps the row and limits how much one value moves your statistics.
 
 **Question 5:** You call `df.fillna(df.mean())` on a DataFrame with both numeric and text columns.
-What happens, and what would you do instead?
+What happens, and what would you do instead? **Answer** What happens: .mean() can only average numbers, so it skips the text columns. .fillna() then fills only the numeric holes, and the text holes stay NaN. There’s no error, so it looks like everything was filled when it wasn’t.
+What to do: use a dictionary and decide per column. Both holes filled, each its own way
+df.fillna({
+    "takings": df["takings"].mean(),   # mean is fine here
+    "outlet": "Unknown",
+})
 
 <details>
 <summary>💡 Check Your Answers</summary>
